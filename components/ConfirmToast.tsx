@@ -83,13 +83,17 @@ export const showToast = {
       success?: string | ((data: T) => string)
       error?: string | ((error: any) => string)
     }
-  ) => toast.promise(promise, {
-    pending: messages.pending || 'جاري المعالجة...',
-    success: messages.success || 'تمت العملية بنجاح ✅',
-    error: messages.error || 'حدث خطأ ❌'
-  }, {
-    theme: "dark",
-    position: "top-right",
-    rtl: true
-  })
+  ) => {
+    const toastMessages: any = {
+      pending: messages.pending || 'جاري المعالجة...',
+      success: messages.success || 'تمت العملية بنجاح ✅',
+      error: messages.error || 'حدث خطأ ❌'
+    };
+    
+    return toast.promise(promise, toastMessages, {
+      theme: "dark",
+      position: "top-right",
+      rtl: true
+    });
+  }
 }

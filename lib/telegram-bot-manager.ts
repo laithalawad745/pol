@@ -577,8 +577,7 @@ class UnifiedBotManager {
       
       // معالج callback buttons
       this.bot.on('callback_query', async (ctx) => {
-        const data = ctx.callbackQuery.data
-        
+const data = 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : undefined        
         if (data?.startsWith('check_')) {
           const parts = data.split('_')
           const channelId = parts[1]

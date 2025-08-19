@@ -51,13 +51,15 @@ export const useToast = () => {
     },
     options?: ToastOptions
   ) => {
+    const toastMessages: any = {
+      pending: messages.pending || 'جاري المعالجة...',
+      success: messages.success || 'تمت العملية بنجاح ✅',
+      error: messages.error || 'حدث خطأ ❌'
+    }
+    
     return toast.promise(
       promise,
-      {
-        pending: messages.pending || 'جاري المعالجة...',
-        success: messages.success || 'تمت العملية بنجاح ✅',
-        error: messages.error || 'حدث خطأ ❌'
-      },
+      toastMessages,
       { ...defaultOptions, ...options }
     )
   }
@@ -89,35 +91,3 @@ export const useToast = () => {
     update
   }
 }
-
-// أمثلة استخدام
-/*
-const toast = useToast()
-
-// رسالة بسيطة
-toast.success('تمت العملية بنجاح!')
-toast.error('حدث خطأ!')
-
-// رسالة تحميل مع تحديث
-const loadingId = toast.loading('جاري الحفظ...')
-// بعد انتهاء العملية
-toast.update(loadingId, {
-  render: 'تم الحفظ بنجاح!',
-  type: 'success',
-  isLoading: false,
-  autoClose: 2000
-})
-
-// مع Promise
-const saveData = async () => {
-  const response = await fetch('/api/save', { method: 'POST' })
-  if (!response.ok) throw new Error('فشل الحفظ')
-  return response.json()
-}
-
-toast.promise(saveData(), {
-  pending: 'جاري حفظ البيانات...',
-  success: 'تم حفظ البيانات بنجاح ✅',
-  error: 'فشل في حفظ البيانات ❌'
-})
-*/
