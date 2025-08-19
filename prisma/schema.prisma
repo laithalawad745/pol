@@ -1,0 +1,137 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Super Admin - المدير العام (أنت)
+model SuperAdmin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Admin - أصحاب القنوات
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  email     String?  @unique
+  
+  // معلومات القناة والبوت
+  channelId    String?  @unique
+  channelName  String?
+  botToken     String?
+  botUsername  String?
+  
+  // حالة الحساب
+  isActive     Boolean  @default(true)
+  isPaid       Boolean  @default(false) // هل دفع الاشتراك
+  planType     String?  @default("basic") // basic, pro, premium
+  planExpiry   DateTime? // تاريخ انتهاء الخطة
+  
+  // الإحصائيات
+  maxSubscribers Int     @default(100) // الحد الأقصى للمشتركين حسب الخطة
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  subscribers Subscriber[]
+  payments    Payment[]
+  logs        AdminLog[]
+}
+
+// المشتركين
+model Subscriber {
+  id            String    @id @default(cuid())
+  telegramId    String    
+  telegramUsername String?
+  firstName     String?
+  lastName      String?
+  phoneNumber   String?
+  
+  subscriptionStart DateTime
+  subscriptionEnd   DateTime
+  isActive         Boolean   @default(true)
+  
+  // السعر والدفع
+  amount          Float?    @default(0) // المبلغ المدفوع
+  paymentMethod   String?   // cash, card, etc
+  notes           String?   // ملاحظات
+  
+  adminId      String
+  admin        Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  inviteLinks  InviteLink[]
+  accessLogs   AccessLog[]
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  @@unique([telegramId, adminId]) // كل مشترك فريد لكل admin
+}
+
+// روابط الدعوة
+model InviteLink {
+  id           String    @id @default(cuid())
+  link         String    
+  token        String    @unique
+  isUsed       Boolean   @default(false)
+  usedAt       DateTime?
+  expiresAt    DateTime
+  details      String?
+  
+  subscriberId String
+  subscriber   Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime  @default(now())
+}
+
+// سجل الوصول
+model AccessLog {
+  id           String    @id @default(cuid())
+  action       String
+  telegramId   String
+  details      String?
+  
+  subscriberId String?
+  subscriber   Subscriber? @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime  @default(now())
+}
+
+// المدفوعات (لتتبع دفعات أصحاب القنوات)
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Float
+  currency    String   @default("USD")
+  method      String   // paypal, stripe, etc
+  status      String   // pending, completed, failed
+  
+  adminId     String
+  admin       Admin    @relation(fields: [adminId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// سجلات النشاط للمدراء
+model AdminLog {
+  id        String   @id @default(cuid())
+  action    String   // login, logout, add_subscriber, etc
+  details   String?
+  ipAddress String?
+  
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
