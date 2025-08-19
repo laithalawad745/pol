@@ -19,8 +19,9 @@ async function verifySuperAdmin(request: NextRequest) {
 // تحديث Admin
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     const superAdmin = await verifySuperAdmin(request)
     if (!superAdmin) {
@@ -42,8 +43,7 @@ export async function PUT(
     if (data.botUsername) updateData.botUsername = data.botUsername
 
     const admin = await prisma.admin.update({
-      where: { id: params.id },
-      data: updateData
+where: { id },      data: updateData
     })
 
     return NextResponse.json(admin)
@@ -59,8 +59,9 @@ export async function PUT(
 // حذف Admin
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     const superAdmin = await verifySuperAdmin(request)
     if (!superAdmin) {
@@ -69,8 +70,7 @@ export async function DELETE(
 
     // حذف جميع البيانات المرتبطة سيتم تلقائياً بسبب onDelete: Cascade
     await prisma.admin.delete({
-      where: { id: params.id }
-    })
+where: { id }    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
