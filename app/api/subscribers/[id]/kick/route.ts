@@ -6,9 +6,9 @@ import { getUnifiedBotInstance } from '@/lib/telegram-bot-manager'
 // طرد مشترك من القناة
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
   
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -57,7 +57,10 @@ export async function POST(
           // إلغاء الحظر بعد ثانية (للسماح بالانضمام مستقبلاً)
           setTimeout(async () => {
             try {
-              await bot.bot.telegram.unbanChatMember(admin.channelId!, telegramId)
+              // التحقق من وجود bot.bot قبل الاستخدام
+              if (bot && bot.bot && admin.channelId) {
+                await bot.bot.telegram.unbanChatMember(admin.channelId, telegramId)
+              }
             } catch (e) {
               console.error('Error unbanning:', e)
             }
